@@ -1,3 +1,4 @@
+*read raw data;
 %macro state;
 %let statelist =
 30440 30441 30442 30570 30571 30572 96972;
@@ -15,18 +16,19 @@ set "C:\Users\xux67\Downloads\sas codes\ipdiagfreq&sl..sas7bdat";
 run;
 data edotpt&sl.;
 set edotpt&sl.;
-count1=servicecount-12;
+count1=servicecount;
 drop servicecount;
 run;
 data ipotpt&sl.;
 set ipotpt&sl.;
-count1=servicecount-12;
+count1=servicecount;
 drop servicecount;
 run;
 %end;
 %mend;
 %state
 
+*append datasets of each diagnosis into one single dataset;
 %macro state;
 %let statelist =
 30440 30441 30442 30570 30571 30572 96972;
@@ -57,17 +59,7 @@ run;
 %mend;
 %state
 
-data ipotpt1;
-set ipotpt;
-if count1=. then delete;
-run;
-
-PROC EXPORT data= ipotpt1 OUTFILE="c:\Users\xux67\Downloads\Long_format_demo_0916.xlsx" 
-            DBMS=xlsx 
-			REPLACE;
-     SHEET="IP"; 
-RUN;
-
+*get the sum of count of services of all diagnoses;
 proc sql;
 create table edotptfreq as
 select sum(count1) as cnt, year, county, month
@@ -92,6 +84,7 @@ set edotptfreq;
 if county="" then delete;
 run;
 
+*save as xlsx files;
 PROC EXPORT data= edotptfreq OUTFILE="c:\Users\xux67\Downloads\ED_each_diag_cnt_0916.xlsx" 
             DBMS=xlsx 
 			REPLACE;
@@ -117,7 +110,7 @@ PROC import out= ipotptany dataFILE="c:\Users\xux67\Downloads\IP_each_diag_cnt_0
      SHEET="IP"; 
 RUN;
 
-
+*change the layout (long to wide);
 %macro state;
 %let statelist =
 30440 30441 30442 30570 30571 30572 96972 any;
@@ -207,6 +200,7 @@ set alledfreq;
 if cnt=. then delete;
 run;
 
+*output and save as xlsx files;
 
 PROC EXPORT data= allipfreq OUTFILE="c:\Users\xux67\Downloads\All_IP_freq_0916.xlsx" 
             DBMS=xlsx 
