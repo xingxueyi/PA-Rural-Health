@@ -1,0 +1,47 @@
+*read specialty list;
+proc import out=joel.speclist datafile="/specialtylist.xlsx"
+dbms=xlsx replace;
+run;
+
+*import specialties codes by using specilty list;
+%macro spec;
+proc sql;
+select count(id) into :numspec
+from speclist;
+quit;
+
+%do x=1 %to &numspec;
+
+proc sql;
+select specialty into :listname
+from speclist
+where id=&x;
+quit;
+%let listname1=%sysfunc(trim(&listname))
+proc import out=joel.&listname1._1024 datafile="/&listname1._10_23_19.xlsx"
+dbms=xlsx replace;
+run;
+
+data d1&listname1. d2&listname1. d3&listname1. d4&listname1. d5&listname1.;
+set joel.&listname1._1024;
+if length(icd9_code)=1 and type= "diag" then output d1&listname1. ;
+else if length(icd9_code)=2 and type= "diag" then output d2&listname1. ;
+else if length(icd9_code)=3 and type= "diag" then output d3&listname1. ;
+else if length(icd9_code)=4 and type= "diag" then output d4&listname1. ;
+else if length(icd9_code)=5 and type= "diag" then output d5&listname1. ;
+run;
+
+data p1&listname1. p2&listname1. p3&listname1. p4&listname1. p5&listname1.;
+set joel.&listname1._1024;
+if length(icd9_code)=1 and type= "proc" then output p1&listname1. ;
+else if length(icd9_code)=2 and type= "proc" then output p2&listname1. ;
+else if length(icd9_code)=3 and type= "proc" then output p3&listname1. ;
+else if length(icd9_code)=4 and type= "proc" then output p4&listname1. ;
+else if length(icd9_code)=5 and type= "proc" then output p5&listname1. ;
+run;
+
+%end;
+%mend;
+%spec
+
+
